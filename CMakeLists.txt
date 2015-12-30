@@ -9,3 +9,9 @@ install(
     FILES include/tip/util/facet.hpp
     DESTINATION include/tip/util
 )
+
+if(BUILD_TESTS)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    enable_testing()
+    add_subdirectory(test)
+endif()
