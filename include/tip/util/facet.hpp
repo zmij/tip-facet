@@ -151,7 +151,7 @@ private:
 public:
 	facet_registry_base(factory_type&& f) :
 		factory_(std::forward<factory_type>(f)), first_facet_(nullptr),
-		deleter_([]( facet_type* f ) { delete f; })
+		deleter_([]( facet_type* fct ) { delete fct; })
 	{
 	}
 
