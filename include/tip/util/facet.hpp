@@ -12,6 +12,7 @@
 #include <functional>
 #include <stdexcept>
 #include <mutex>
+#include <vector>
 
 namespace tip {
 namespace util {
@@ -222,6 +223,30 @@ public:
             delete first_facet_;
             first_facet_ = next;
         }
+    }
+    template < typename ... IArgs >
+    void
+    invoke_all( void(facet_type::* member)(IArgs ...), IArgs&& ... args )
+    {
+        lock_guard lock{mtx_};
+        auto fct = first_facet_;
+        while (fct) {
+            fct->*member(::std::forward<IArgs>(args)...);
+            fct = fct->next_;
+        }
+    }
+    template < typename Return, typename ... IArgs >
+    ::std::vector<Return>
+    invoke_all( Return(facet_type::* member)(IArgs ...), IArgs&& ... args )
+    {
+        lock_guard lock{mtx_};
+        ::std::vector<Return> result;
+        auto fct = first_facet_;
+        while (fct) {
+            result.emplace_back(fct->*member(::std::forward<IArgs>(args)...));
+            fct = fct->next_;
+        }
+        return result;
     }
 protected:
     void
