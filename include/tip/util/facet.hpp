@@ -226,7 +226,7 @@ public:
     }
     template < typename ... IArgs >
     void
-    invoke_all( void(facet_type::* member)(IArgs ...), IArgs&& ... args )
+    invoke_all( void(facet_type::* member)(IArgs&& ...), IArgs&& ... args )
     {
         lock_guard lock{mtx_};
         auto fct = first_facet_;
@@ -237,7 +237,7 @@ public:
     }
     template < typename Return, typename ... IArgs >
     ::std::vector<Return>
-    invoke_all( Return(facet_type::* member)(IArgs ...), IArgs&& ... args )
+    invoke_all( Return(facet_type::* member)(IArgs&& ...), IArgs&& ... args )
     {
         lock_guard lock{mtx_};
         ::std::vector<Return> result;
