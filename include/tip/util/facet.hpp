@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <mutex>
 #include <vector>
+#include <iterator>
 
 namespace tip {
 namespace util {
@@ -125,6 +126,7 @@ public:
     using facet_type        = BaseFacet;
     using factory_type      = facet_factory<facet_type, Args ...>;
     using deleter_func_type = ::std::function< void (facet_type*) >;
+
 private:
     using id_type           = detail::facet_id< facet_type >;
     using factory_func      = ::std::function< facet_type* () >;
@@ -152,6 +154,66 @@ private:
         facet_type* facet_;
         facet*      next_;
     };
+    template < typename Val >
+    struct facet_iterator : ::std::iterator<
+                ::std::forward_iterator_tag,
+                Val > {
+    private:
+        facet* current_;
+    public:
+        using base_type = ::std::iterator< ::std::forward_iterator_tag, Val >;
+        using pointer   = typename base_type::pointer;
+        using reference = typename base_type::reference;
+    public:
+        facet_iterator() : current_{nullptr} {}
+        explicit
+        facet_iterator(facet* curr) : current_{curr} {}
+
+        facet_iterator(facet_iterator const&) = default;
+        facet_iterator(facet_iterator&&) = default;
+        facet_iterator&
+        operator = (facet_iterator const&) = default;
+        facet_iterator&
+        operator = (facet_iterator&&) = default;
+
+        template < typename T >
+        facet_iterator(facet_iterator<T> const& rhs)
+            : current_{rhs.current_} {}
+
+        template < typename T >
+        bool
+        operator == (facet_iterator<T> const& rhs) const
+        { return current_ == rhs.current_; }
+
+        template < typename T >
+        bool
+        operator != (facet_iterator<T> const& rhs) const
+        { return !(*this == rhs); }
+
+        facet_iterator&
+        operator++ ()
+        {
+            current_ = current_->next_;
+            return *this;
+        }
+        facet_iterator
+        operator++ (int)
+        {
+            facet_iterator tmp{*this};
+            return ++tmp;
+        }
+
+        reference
+        operator *()
+        { return *current_->facet_; }
+
+        pointer
+        operator -> ()
+        { return current_->facet_; }
+    };
+public:
+    using iterator          = facet_iterator<facet_type>;
+    using const_iterator    = facet_iterator<facet_type const>;
 public:
     facet_registry_base(factory_type&& f) :
         factory_(::std::forward<factory_type>(f)), first_facet_(nullptr),
@@ -224,30 +286,30 @@ public:
             first_facet_ = next;
         }
     }
-    template < typename ... IArgs >
-    void
-    invoke_all( void(facet_type::* member)(IArgs&& ...), IArgs&& ... args )
-    {
-        lock_guard lock{mtx_};
-        auto fct = first_facet_;
-        while (fct) {
-            fct->*member(::std::forward<IArgs>(args)...);
-            fct = fct->next_;
-        }
-    }
-    template < typename Return, typename ... IArgs >
-    ::std::vector<Return>
-    invoke_all( Return(facet_type::* member)(IArgs&& ...), IArgs&& ... args )
-    {
-        lock_guard lock{mtx_};
-        ::std::vector<Return> result;
-        auto fct = first_facet_;
-        while (fct) {
-            result.emplace_back(fct->*member(::std::forward<IArgs>(args)...));
-            fct = fct->next_;
-        }
-        return result;
-    }
+
+    bool
+    empty() const
+    { return first_facet_ == nullptr; }
+
+    iterator
+    begin()
+    { return iterator{ first_facet_ }; }
+    const_iterator
+    begin() const
+    { return cbegin(); }
+    const_iterator
+    cbegin() const
+    { return const_iterator{ first_facet_ }; }
+
+    iterator
+    end()
+    { return iterator{}; }
+    const_iterator
+    end() const
+    { return cend(); }
+    const_iterator
+    cend() const
+    { return const_iterator{}; }
 protected:
     void
     set_factory(factory_type&& f)
