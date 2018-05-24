@@ -23,21 +23,21 @@ namespace detail {
 
 template < typename BaseFacet >
 struct facet_id {
-    constexpr facet_id()        = default;
-    facet_id(facet_id const&)   = delete;
-    facet_id&
-    operator = (facet_id const&) = delete;
+	constexpr facet_id() = default;
+	facet_id(facet_id const&) = delete;
+	facet_id&
+	operator = (facet_id const&) = delete;
 };
 
 template < typename BaseFacet, typename Facet >
 struct facet_identifier {
     using id_type = facet_id< BaseFacet >;
-    static id_type id;
+	static id_type id;
 };
 
 template < typename BaseFacet, typename Facet >
 typename facet_identifier< BaseFacet, Facet >::id_type
-        facet_identifier< BaseFacet, Facet >::id;
+		facet_identifier< BaseFacet, Facet >::id;
 
 template < int ... >
 struct index {};
@@ -57,67 +57,67 @@ struct facet_factory {
     using params_type           = ::std::tuple< Args ... >;
     using index_type            = typename index_builder< sizeof ... (Args) >::type;
 
-    facet_factory() : params_() {}
+	facet_factory() : params_() {}
     facet_factory( Args&& ... args ) : params_(::std::forward<Args>(args) ...) {}
-    facet_factory( Args const& ... args ) : params_(args ...) {}
+	facet_factory( Args const& ... args ) : params_(args ...) {}
 
-    template < typename Facet >
-    struct factory {
+	template < typename Facet >
+	struct factory {
         using facet_type = Facet;
-        factory_type const& factory_;
-        base_facet_type*
-        operator()() const
-        {
-            return create_impl(index_type());
-        }
-    private:
-        template < int ... S >
-        base_facet_type*
-        create_impl(index<S...>) const
-        {
+		factory_type const& factory_;
+		base_facet_type*
+		operator()() const
+		{
+			return create_impl(index_type());
+		}
+	private:
+		template < int ... S >
+		base_facet_type*
+		create_impl(index<S...>) const
+		{
             return new facet_type( ::std::get<S>(factory_.params_) ... );
-        }
-    };
+		}
+	};
 
-    template < typename Facet >
-    base_facet_type*
-    create() const
-    {
+	template < typename Facet >
+	base_facet_type*
+	create() const
+	{
         using factory_type = factory< Facet >;
-        factory_type f{ *this };
-        return f();
-    }
+		factory_type f{ *this };
+		return f();
+	}
 
 private:
-    template < typename Facet >
-    friend struct factory;
+	template < typename Facet >
+	friend struct factory;
 
-    params_type params_;
+	params_type params_;
 };
 
 template < typename BaseFacet >
 struct facet_factory< BaseFacet > {
     using factory_type      = facet_factory< BaseFacet >;
     using base_facet_type   = BaseFacet;
-    facet_factory() {};
+	facet_factory() {};
 
-    template < typename Facet >
-    base_facet_type*
-    create()
-    {
-        return new Facet();
-    }
+	template < typename Facet >
+	base_facet_type*
+	create()
+	{
+		return new Facet();
+	}
 
-    template < typename Facet >
-    struct factory {
+	template < typename Facet >
+	struct factory {
         using facet_type = Facet;
-        factory_type const& factory_;
-        base_facet_type*
-        operator()() const
-        {
-            return new facet_type();
-        }
-    };
+		factory_type const& factory_;
+		base_facet_type*
+		operator()() const
+		{
+			return new facet_type();
+		}
+	};
 };
 
 template < typename BaseFacet, typename ... Args >
@@ -133,34 +133,34 @@ private:
     using mutex_type        = ::std::mutex;
     using lock_guard        = ::std::lock_guard<mutex_type>;
 
-    struct key {
-        key() : type_info_(nullptr), id_(nullptr) {}
+	struct key {
+		key() : type_info_(nullptr), id_(nullptr) {}
 
         ::std::type_info const* type_info_;
-        id_type const* id_;
+		id_type const* id_;
 
-        bool
-        operator == (key const& rhs)
-        {
-            if (id_ && rhs.id_ && id_ == rhs.id_)
-                return true;
-            if (type_info_ && rhs.type_info_ && type_info_ == rhs.type_info_)
-                return true;
-            return false;
-        }
-    };
-    struct facet {
-        key         key_;
-        facet_type* facet_;
-        facet*      next_;
-    };
+		bool
+		operator == (key const& rhs)
+		{
+			if (id_ && rhs.id_ && id_ == rhs.id_)
+				return true;
+			if (type_info_ && rhs.type_info_ && type_info_ == rhs.type_info_)
+				return true;
+			return false;
+		}
+	};
+	struct facet {
+		key			key_;
+		facet_type* facet_;
+		facet*		next_;
+	};
     template < typename Val >
     struct facet_iterator : ::std::iterator<
                 ::std::forward_iterator_tag,
                 Val > {
     private:
         facet* current_;
-    public:
+public:
         using base_type = ::std::iterator< ::std::forward_iterator_tag, Val >;
         using pointer   = typename base_type::pointer;
         using reference = typename base_type::reference;
@@ -215,77 +215,77 @@ public:
     using iterator          = facet_iterator<facet_type>;
     using const_iterator    = facet_iterator<facet_type const>;
 public:
-    facet_registry_base(factory_type&& f) :
+	facet_registry_base(factory_type&& f) :
         factory_(::std::forward<factory_type>(f)), first_facet_(nullptr),
         deleter_([]( facet_type* fct ) { delete fct; })
-    {
-    }
+	{
+	}
 
-    facet_registry_base(deleter_func_type del, factory_type&& f) :
+	facet_registry_base(deleter_func_type del, factory_type&& f) :
         factory_(::std::forward<factory_type>(f)), first_facet_(nullptr),
-        deleter_(del)
-    {
-    }
+		deleter_(del)
+	{
+	}
 
-    ~facet_registry_base()
-    {
-        clear();
-    }
+	~facet_registry_base()
+	{
+		clear();
+	}
 
-    facet_registry_base(facet_registry_base const&) = delete;
-    facet_registry_base&
-    operator = (facet_registry_base const&) = delete;
+	facet_registry_base(facet_registry_base const&) = delete;
+	facet_registry_base&
+	operator = (facet_registry_base const&) = delete;
 
-    template < typename Facet >
-    void
-    add_facet(Facet* new_facet)
-    {
+	template < typename Facet >
+	void
+	add_facet(Facet* new_facet)
+	{
         static_assert(::std::is_base_of< facet_type, Facet >::value,
-                "All facets in a facet registry must derive from the same base type");
+				"All facets in a facet registry must derive from the same base type");
         lock_guard lock{mtx_};
-        key k = create_key<Facet>();
-        if (find_facet(k))
+		key k = create_key<Facet>();
+		if (find_facet(k))
             throw ::std::logic_error("Facet already exists");
 
-        insert_facet(k, new_facet);
-    }
+		insert_facet(k, new_facet);
+	}
 
-    template < typename Facet >
-    bool
-    has_facet() const
-    {
+	template < typename Facet >
+	bool
+	has_facet() const
+	{
         static_assert(::std::is_base_of< facet_type, Facet >::value,
-                "All facets in a facet registry must derive from the same base type");
+				"All facets in a facet registry must derive from the same base type");
         lock_guard lock{mtx_};
-        key k = create_key<Facet>();
-        return find_facet(k) != nullptr;
-    }
+		key k = create_key<Facet>();
+		return find_facet(k) != nullptr;
+	}
 
-    template < typename Facet >
-    Facet&
-    use_facet()
-    {
+	template < typename Facet >
+	Facet&
+	use_facet()
+	{
         static_assert(::std::is_base_of< facet_type, Facet >::value,
-                "All facets in a facet registry must derive from the same base type");
+				"All facets in a facet registry must derive from the same base type");
         using facet_constructor_type = typename factory_type::template factory< Facet >;
         lock_guard lock{mtx_};
-        key k = create_key<Facet>();
-        facet_constructor_type c{ factory_ };
-        facet* f = use_facet(k, c);
-        return *static_cast< Facet* >(f->facet_);
-    }
+		key k = create_key<Facet>();
+		facet_constructor_type c{ factory_ };
+		facet* f = use_facet(k, c);
+		return *static_cast< Facet* >(f->facet_);
+	}
 
-    void
-    clear()
-    {
+	void
+	clear()
+	{
         lock_guard lock{mtx_};
-        while (first_facet_) {
-            facet* next = first_facet_->next_;
-            deleter_(first_facet_->facet_);
-            delete first_facet_;
-            first_facet_ = next;
-        }
-    }
+		while (first_facet_) {
+			facet* next = first_facet_->next_;
+			deleter_(first_facet_->facet_);
+			delete first_facet_;
+			first_facet_ = next;
+		}
+	}
 
     bool
     empty() const
@@ -311,54 +311,54 @@ public:
     cend() const
     { return const_iterator{}; }
 protected:
-    void
-    set_factory(factory_type&& f)
-    {
+	void
+	set_factory(factory_type&& f)
+	{
         factory_ = ::std::forward< factory_type >(f);
-    }
+	}
 private:
-    template < typename Facet >
-    key
-    create_key() const
-    {
+	template < typename Facet >
+	key
+	create_key() const
+	{
         using facet_identifier = detail::facet_identifier<facet_type, Facet>;
-        key k;
-        k.id_ = &facet_identifier::id;
-        return k;
-    }
+		key k;
+		k.id_ = &facet_identifier::id;
+		return k;
+	}
 
-    facet*
-    insert_facet(key const& k, facet_type* new_facet)
-    {
-        first_facet_ = new facet { k, new_facet, first_facet_ };
-        return first_facet_;
-    }
+	facet*
+	insert_facet(key const& k, facet_type* new_facet)
+	{
+		first_facet_ = new facet { k, new_facet, first_facet_ };
+		return first_facet_;
+	}
 
-    facet*
-    use_facet(key const& k, factory_func create)
-    {
-        facet* f = find_facet(k);
-        if (!f) {
-            f = insert_facet(k, create());
-        }
-        return f;
-    }
+	facet*
+	use_facet(key const& k, factory_func create)
+	{
+		facet* f = find_facet(k);
+		if (!f) {
+			f = insert_facet(k, create());
+		}
+		return f;
+	}
 
-    facet*
-    find_facet(key const& k) const
-    {
-        facet* f = first_facet_;
-        while (f) {
-            if (f->key_ == k)
-                return f;
-            f = f->next_;
-        }
-        return nullptr;
-    }
+	facet*
+	find_facet(key const& k) const
+	{
+		facet* f = first_facet_;
+		while (f) {
+			if (f->key_ == k)
+				return f;
+			f = f->next_;
+		}
+		return nullptr;
+	}
 private:
-    factory_type        factory_;
-    facet*              first_facet_;
-    deleter_func_type   deleter_;
+	factory_type		factory_;
+	facet*				first_facet_;
+	deleter_func_type	deleter_;
     mutex_type          mtx_;
 };
 
@@ -370,61 +370,61 @@ private:
  */
 template < typename BaseFacet, typename ... Args >
 class facet_registry :
-        public detail::facet_registry_base< BaseFacet, Args ... > {
+		public detail::facet_registry_base< BaseFacet, Args ... > {
 public:
     using base_type         = detail::facet_registry_base< BaseFacet, Args ... >;
     using factory_type      = typename base_type::factory_type;
     using deleter_func_type = typename base_type::deleter_func_type;
 public:
-    /**
-     * Create facet registry instance with default deleter and no arguments
-     * (default values for the types will be used).
-     */
-    facet_registry() : base_type(factory_type()) {}
-    /**
-     * Create facet registry instance with a deleter function and no arguments
-     * (default values for the types will be used).
-     * @param del Deleter function. Takes a pointer to facet as an argument.
-     */
-    facet_registry(deleter_func_type del) : base_type(del, factory_type()) {}
-    /**
-     * Create facet registry instance with default deleter and facet constructor
-     * arguments. Each facet constructor will receive the arguments.
-     * @param args Arguments passed to facets' constructors
-     */
+	/**
+	 * Create facet registry instance with default deleter and no arguments
+	 * (default values for the types will be used).
+	 */
+	facet_registry() : base_type(factory_type()) {}
+	/**
+	 * Create facet registry instance with a deleter function and no arguments
+	 * (default values for the types will be used).
+	 * @param del Deleter function. Takes a pointer to facet as an argument.
+	 */
+	facet_registry(deleter_func_type del) : base_type(del, factory_type()) {}
+	/**
+	 * Create facet registry instance with default deleter and facet constructor
+	 * arguments. Each facet constructor will receive the arguments.
+	 * @param args Arguments passed to facets' constructors
+	 */
     facet_registry(Args&& ... args) : base_type(factory_type(::std::forward<Args>(args) ... )) {}
-    /**
-     * Create facet registry instance with a deleter function and facet constructor
-     * arguments. Each facet constructor will receive the arguments.
-     * @param del Deleter function. Takes a pointer to facet as an argument.
-     * @param args Arguments passed to facets' constructors
-     */
+	/**
+	 * Create facet registry instance with a deleter function and facet constructor
+	 * arguments. Each facet constructor will receive the arguments.
+	 * @param del Deleter function. Takes a pointer to facet as an argument.
+	 * @param args Arguments passed to facets' constructors
+	 */
     facet_registry(deleter_func_type del, Args&& ... args) : base_type(del, factory_type(::std::forward(args) ... )) {}
 
-    /**
-     * Set facet construction arguments.
-     * Handy in case when the arguments can be figured out only after the
-     * registry's construction, e.g. weak pointer to the registry's owner.
-     * @param args Arguments passed to facets' constructors
-     */
-    void
-    set_construction_args(Args&& ... args)
-    {
+	/**
+	 * Set facet construction arguments.
+	 * Handy in case when the arguments can be figured out only after the
+	 * registry's construction, e.g. weak pointer to the registry's owner.
+	 * @param args Arguments passed to facets' constructors
+	 */
+	void
+	set_construction_args(Args&& ... args)
+	{
         base_type::set_factory(factory_type(::std::forward<Args>(args) ... ));
-    }
-    /**
-     * Set facet construction arguments.
-     * Handy in case when the arguments can be figured out only after the
-     * registry's construction, e.g. weak pointer to the registry's owner.
-     * @param args Arguments passed to facets' constructors
-     */
-    void
-    set_construction_args(Args const& ... args)
-    {
-        base_type::set_factory(factory_type(args ... ));
-    }
+	}
+	/**
+	 * Set facet construction arguments.
+	 * Handy in case when the arguments can be figured out only after the
+	 * registry's construction, e.g. weak pointer to the registry's owner.
+	 * @param args Arguments passed to facets' constructors
+	 */
+	void
+	set_construction_args(Args const& ... args)
+	{
+		base_type::set_factory(factory_type(args ... ));
+	}
 
-    /** @todo Document the clear function here*/
+	/** @todo Document the clear function here*/
 };
 
 /**
@@ -437,16 +437,16 @@ public:
     using factory_type      = typename base_type::factory_type;
     using deleter_func_type = typename base_type::deleter_func_type;
 public:
-    /**
-     * Create facet registry instance with default deleter.
-     */
-    facet_registry() : base_type(factory_type()) {}
-    /**
-     * Create facet registry instance with a deleter function.
-     * @param del Deleter function. Takes a pointer to facet as an argument.
-     */
-    facet_registry(deleter_func_type del) : base_type(del, factory_type()) {}
-    /** @todo Document the clear function here*/
+	/**
+	 * Create facet registry instance with default deleter.
+	 */
+	facet_registry() : base_type(factory_type()) {}
+	/**
+	 * Create facet registry instance with a deleter function.
+	 * @param del Deleter function. Takes a pointer to facet as an argument.
+	 */
+	facet_registry(deleter_func_type del) : base_type(del, factory_type()) {}
+	/** @todo Document the clear function here*/
 };
 
 /**
@@ -465,7 +465,7 @@ template < typename Facet, typename BaseFacet, typename ... Args >
 void
 add_facet(facet_registry< BaseFacet, Args ... >& reg, Facet* new_facet)
 {
-    reg.template add_facet<Facet>(new_facet);
+	reg.template add_facet<Facet>(new_facet);
 }
 
 /**
@@ -481,7 +481,7 @@ template < typename Facet, typename BaseFacet, typename ... Args >
 bool
 has_facet(facet_registry< BaseFacet, Args ... > const& reg)
 {
-    return reg.template has_facet<Facet>();
+	return reg.template has_facet<Facet>();
 }
 
 /**
@@ -498,7 +498,7 @@ template < typename Facet, typename BaseFacet, typename ... Args >
 Facet&
 use_facet(facet_registry< BaseFacet, Args ... >& reg)
 {
-    return reg.template use_facet<Facet>();
+	return reg.template use_facet<Facet>();
 }
 
 }  // namespace util
